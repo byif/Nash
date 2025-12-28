@@ -1,4 +1,5 @@
-const API_BASE = "http://127.0.0.1:8000/api";
+// 🔥 BASE API URL FROM ENV
+const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 /* SIGNUP */
 export async function signupUser(data: {
@@ -37,7 +38,7 @@ export async function googleLogin(token: string) {
   return res.json();
 }
 
-/* FETCH USERS ✅ */
+/* FETCH USERS */
 export async function fetchUsers() {
   const res = await fetch(`${API_BASE}/auth/users/`);
   return res.json();
