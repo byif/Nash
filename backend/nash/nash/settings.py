@@ -115,6 +115,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "https://nashchat.vercel.app"
 ]
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
