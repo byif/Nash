@@ -2,6 +2,9 @@ import { useRef } from "react";
 import { Paperclip, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+/* ---------- ENV ---------- */
+const API = import.meta.env.VITE_API_URL;
+
 type Props = {
   onSendMessage: (content: string) => void;
 };
@@ -31,46 +34,35 @@ const MessageInput = ({ onSendMessage }: Props) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.log("📂 Selected file:", file.name, file.type);
-
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await fetch(
-        "http://127.0.0.1:8000/api/auth/upload/",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      console.log("📡 Upload status:", res.status);
+      const res = await fetch(`${API}/api/auth/upload/`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!res.ok) {
-        throw new Error(`Upload failed with status ${res.status}`);
+        throw new Error(`Upload failed: ${res.status}`);
       }
 
       const data = await res.json();
-      console.log("✅ Upload response:", data);
 
-      // 🔥 SEND IMAGE URL AS MESSAGE
+      // 🔥 SEND FILE URL AS MESSAGE
       onSendMessage(data.url);
     } catch (err) {
       console.error("❌ Upload failed:", err);
+      alert("File upload failed");
     } finally {
-      e.target.value = ""; // reset input
+      e.target.value = "";
     }
   };
 
   return (
     <div className="flex items-center gap-2 p-3 border-t bg-card">
       {/* ATTACH */}
-      <Button
-        variant="nashGhost"
-        size="icon"
-        onClick={openFilePicker}
-      >
+      <Button variant="nashGhost" size="icon" onClick={openFilePicker}>
         <Paperclip size={18} />
       </Button>
 
