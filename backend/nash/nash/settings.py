@@ -3,17 +3,19 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# =========================
+# ======================================================
 # SECURITY
-# =========================
+# ======================================================
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-dev-secret-key")
-DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ["*"]  # OK for Railway / Render
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# =========================
+ALLOWED_HOSTS = ["*"]  # OK for Railway
+
+
+# ======================================================
 # INSTALLED APPS
-# =========================
+# ======================================================
 INSTALLED_APPS = [
     "daphne",  # MUST be first for Channels
 
@@ -31,9 +33,10 @@ INSTALLED_APPS = [
     "accounts",
 ]
 
-# =========================
+
+# ======================================================
 # MIDDLEWARE
-# =========================
+# ======================================================
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # MUST be first
     "django.middleware.security.SecurityMiddleware",
@@ -45,17 +48,19 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# =========================
+
+# ======================================================
 # URL / APPLICATION
-# =========================
+# ======================================================
 ROOT_URLCONF = "nash.urls"
 
 ASGI_APPLICATION = "nash.asgi.application"
 WSGI_APPLICATION = "nash.wsgi.application"
 
-# =========================
+
+# ======================================================
 # TEMPLATES
-# =========================
+# ======================================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -72,10 +77,11 @@ TEMPLATES = [
     },
 ]
 
-# =========================
+
+# ======================================================
 # DATABASE
-# (SQLite for now – Railway will override)
-# =========================
+# Railway will override this automatically
+# ======================================================
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -83,21 +89,25 @@ DATABASES = {
     }
 }
 
-# =========================
+
+# ======================================================
 # CHANNELS (REDIS)
-# =========================
+# ======================================================
+REDIS_URL = os.environ.get("REDIS_URL")
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")],
+            "hosts": [REDIS_URL] if REDIS_URL else [("127.0.0.1", 6379)],
         },
     }
 }
 
-# =========================
+
+# ======================================================
 # CORS
-# =========================
+# ======================================================
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
@@ -109,13 +119,18 @@ CORS_ALLOWED_ORIGINS = [
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-# =========================
+
+# ======================================================
 # STATIC & MEDIA
-# =========================
+# ======================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+
+# ======================================================
+# DEFAULT
+# ======================================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
