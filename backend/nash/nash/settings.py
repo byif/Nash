@@ -3,21 +3,24 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ======================================================
+# =========================
 # SECURITY
-# ======================================================
+# =========================
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-dev-secret-key")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["*"]  # OK for Railway
+ALLOWED_HOSTS = [
+    "nash-production.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
 
-
-# ======================================================
+# =========================
 # INSTALLED APPS
-# ======================================================
+# =========================
 INSTALLED_APPS = [
-    "daphne",  # MUST be first for Channels
+    "daphne",  # MUST be first
 
     "django.contrib.admin",
     "django.contrib.auth",
@@ -33,12 +36,11 @@ INSTALLED_APPS = [
     "accounts",
 ]
 
-
-# ======================================================
+# =========================
 # MIDDLEWARE
-# ======================================================
+# =========================
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # MUST be first
+    "corsheaders.middleware.CorsMiddleware",  # MUST BE FIRST
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -48,19 +50,17 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-
-# ======================================================
+# =========================
 # URL / APPLICATION
-# ======================================================
+# =========================
 ROOT_URLCONF = "nash.urls"
 
 ASGI_APPLICATION = "nash.asgi.application"
 WSGI_APPLICATION = "nash.wsgi.application"
 
-
-# ======================================================
+# =========================
 # TEMPLATES
-# ======================================================
+# =========================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -77,11 +77,9 @@ TEMPLATES = [
     },
 ]
 
-
-# ======================================================
+# =========================
 # DATABASE
-# Railway will override this automatically
-# ======================================================
+# =========================
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -89,49 +87,45 @@ DATABASES = {
     }
 }
 
-
-# ======================================================
+# =========================
 # CHANNELS (REDIS)
-# ======================================================
-REDIS_URL = os.environ.get("REDIS_URL")
-
+# =========================
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [REDIS_URL] if REDIS_URL else [("127.0.0.1", 6379)],
+            "hosts": [
+                os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
+            ],
         },
     }
 }
 
-
-# ======================================================
-# CORS
-# ======================================================
+# =========================
+# CORS + CSRF (🔥 THIS FIXES YOUR ERROR)
+# =========================
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
+    "https://nashchaty.vercel.app",   # ✅ YOUR FRONTEND
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "https://nashchat.vercel.app"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://nashchaty.vercel.app",
+    "https://*.railway.app",
 ]
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
-
-# ======================================================
+# =========================
 # STATIC & MEDIA
-# ======================================================
+# =========================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-
-# ======================================================
-# DEFAULT
-# ======================================================
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
