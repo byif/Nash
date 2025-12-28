@@ -1,13 +1,12 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import sync_to_async
-from .models import ChatMessage
-
+from channels.db import database_sync_to_async
 
 class ChatConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
-        self.room_name = self.scope["url_route"]["kwargs"]["room"]
-        self.room_group_name = f"chat_{self.room_name}"
+        self.room = self.scope["url_route"]["kwargs"]["room"]
+        self.room_group_name = f"chat_{self.room}"
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -25,30 +24,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
 
-        message_id = data.get("id")
-        content = data.get("message")   # frontend sends "message"
-        sender = data.get("sender")
+        message = data["message"]
+        sender = data["sender"]
 
-        if not content or not sender:
-            return  # prevent crash
+        msg_id = await self.save_message(self.room, sender, message)
 
-        # ✅ SAVE CORRECTLY
-        await sync_to_async(ChatMessage.objects.create)(
-            room=self.room_name,
-            sender=sender,
-            content=content
-        )
-
-        # ✅ BROADCAST
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "chat_message",
-                "id": message_id,
-                "message": content,
+                "id": msg_id,
+                "message": message,
                 "sender": sender,
             }
         )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
+
+    @database_sync_to_async
+    def save_message(self, room, sender, message):
+        from .models import ChatMessage   # ✅ IMPORT INSIDE FUNCTION
+        msg = ChatMessage.objects.create(
+            room=room,
+            sender=sender,
+            content=message
+        )
+        return msg.id
