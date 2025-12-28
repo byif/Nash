@@ -20,7 +20,7 @@ ALLOWED_HOSTS = [
 # INSTALLED APPS
 # =========================
 INSTALLED_APPS = [
-    "daphne",  # MUST be first
+    "daphne",  # MUST be first for Channels
 
     "django.contrib.admin",
     "django.contrib.auth",
@@ -44,7 +44,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+
+    # CSRF must stay enabled (we whitelist frontend)
     "django.middleware.csrf.CsrfViewMiddleware",
+
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -102,19 +105,17 @@ CHANNEL_LAYERS = {
 }
 
 # =========================
-# CORS + CSRF (🔥 THIS FIXES YOUR ERROR)
+# CORS + CSRF (🚨 CRITICAL FIX)
 # =========================
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://nashchaty.vercel.app",   # ✅ YOUR FRONTEND
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "https://nashchaty.vercel.app",   # ✅ Vercel frontend
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://nashchaty.vercel.app",
-    "https://*.railway.app",
+    "https://nash-production.up.railway.app",
 ]
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
