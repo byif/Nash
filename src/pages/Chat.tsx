@@ -12,6 +12,14 @@ import MessageInput from "@/components/nash/MessageInput";
 
 import { fetchUsers } from "@/lib/api";
 
+/* ---------- ENV ---------- */
+const API = import.meta.env.VITE_API_URL;
+const WS =
+  import.meta.env.VITE_WS_URL ||
+  (window.location.protocol === "https:"
+    ? "wss://nash-production.up.railway.app"
+    : "ws://localhost:8000");
+
 /* ---------- TYPES ---------- */
 type User = {
   id: number;
@@ -52,7 +60,6 @@ const Chat = () => {
   const [unreadUsers, setUnreadUsers] = useState<Record<number, number>>({});
   const [unreadGroups, setUnreadGroups] = useState<Record<number, number>>({});
 
-  /* ---------- GROUP MODAL ---------- */
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupName, setGroupName] = useState("");
 
@@ -71,9 +78,10 @@ const Chat = () => {
 
   /* ---------- GROUPS ---------- */
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/auth/groups/?user_id=${currentUser.id}`)
+    fetch(`${API}/api/auth/groups/?user_id=${currentUser.id}`)
       .then((res) => res.json())
-      .then(setGroups);
+      .then(setGroups)
+      .catch(() => setGroups([]));
   }, [currentUser.id]);
 
   /* ---------- LOAD HISTORY ---------- */
@@ -85,8 +93,8 @@ const Chat = () => {
         ? `group_${activeChat.id}`
         : [currentUser.id, activeChat.id].sort().join("_");
 
-    fetch(`http://127.0.0.1:8000/api/auth/messages/${room}/`)
-      .then((r) => r.ok ? r.json() : [])
+    fetch(`${API}/api/auth/messages/${room}/`)
+      .then((r) => (r.ok ? r.json() : []))
       .then((data) =>
         setMessages(
           data.map((m: any) => ({
@@ -115,7 +123,7 @@ const Chat = () => {
         ? `group_${activeChat.id}`
         : [currentUser.id, activeChat.id].sort().join("_");
 
-    const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${room}/`);
+    const socket = new WebSocket(`${WS}/ws/chat/${room}/`);
     socketRef.current = socket;
 
     socket.onmessage = (e) => {
@@ -167,7 +175,7 @@ const Chat = () => {
   const handleCreateGroup = async () => {
     if (!groupName.trim()) return;
 
-    const res = await fetch("http://127.0.0.1:8000/api/auth/groups/create/", {
+    const res = await fetch(`${API}/api/auth/groups/create/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -185,7 +193,6 @@ const Chat = () => {
   /* ---------- UI ---------- */
   return (
     <div className="h-screen flex flex-col">
-      {/* HEADER */}
       <header className="h-14 border-b bg-card flex justify-between px-4 items-center">
         <NashLogo size="sm" />
         <div className="flex gap-2">
@@ -199,7 +206,6 @@ const Chat = () => {
       </header>
 
       <div className="flex flex-1">
-        {/* SIDEBAR */}
         <aside className="w-72 border-r bg-card flex flex-col">
           <UserProfile user={currentUser} />
 
@@ -214,7 +220,6 @@ const Chat = () => {
             }
           />
 
-          {/* GROUPS */}
           <div className="border-t">
             <div className="flex justify-between items-center px-4 py-2 text-xs font-semibold">
               Groups
@@ -242,7 +247,6 @@ const Chat = () => {
           </div>
         </aside>
 
-        {/* CHAT */}
         <main className="flex-1 flex flex-col">
           <ChatHeader
             activeChat={activeChat ? { name: activeChat.name } : null}
@@ -262,7 +266,6 @@ const Chat = () => {
         </main>
       </div>
 
-      {/* CREATE GROUP MODAL */}
       {showGroupModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-card p-6 rounded-xl w-80">
